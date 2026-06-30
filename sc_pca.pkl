@@ -1,0 +1,51 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2580
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww28300\viewh17700\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 import pandas as pd\
+\
+from sklearn.preprocessing import StandardScaler\
+from sklearn.decomposition import PCA\
+\
+df=pd.read_csv("watson_healthcare_modified.csv")\
+\
+from sklearn.preprocessing import OneHotEncoder\
+\
+encoder = OneHotEncoder(sparse=False, drop='first', dtype=int)\
+encoded_array = encoder.fit_transform(df[['BusinessTravel','Department','EducationField','Gender','JobRole','MaritalStatus','OverTime']])\
+\
+#  Get clean names for the new columns and create a DataFrame\
+columns_to_encode = ['BusinessTravel','Department','EducationField','Gender','JobRole','MaritalStatus','OverTime']\
+encoded_column_names = encoder.get_feature_names(columns_to_encode)\
+encoded_df = pd.DataFrame(encoded_array, columns=encoded_column_names)\
+\
+# Merge back into the original dataset and drop the old raw text columns\
+# We use .concat() along axis=1 to join them side-by-side\
+final_df = pd.concat([df, encoded_df], axis=1).drop(columns=['BusinessTravel','Department','EducationField','Gender','JobRole','MaritalStatus','OverTime'])\
+\
+\
+x=final_df.drop('Attrition',axis=1)\
+y=final_df['Attrition']\
+\
+from sklearn.model_selection import train_test_split\
+x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=0.30)\
+\
+\
+sc=StandardScaler()\
+x_train=sc.fit_transform(x_train)\
+x_test=sc.transform(x_test)\
+\
+\
+pca = PCA(n_components=28)\
+x_train = pca.fit_transform(x_train)\
+x_test = pca.transform(x_test)\
+# Step 3: Convert the PCA results back into a clean Pandas DataFrame\
+pca_columns = [f'PC_\{i+1\}' for i in range(x_train.shape[1])]\
+df_pca = pd.DataFrame(x_train, columns=pca_columns)\
+\
+\
+\
+}
